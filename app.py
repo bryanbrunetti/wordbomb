@@ -18,19 +18,19 @@ def index():
 
 @socketio.on('getNewLetterPair')
 def get_new_letterpair():
-    emit('letterpair', {'letterpair': app.words.random_pair()})
+    emit('letterpair', {'letterpair': app.words.random_pair("easy")})
 
 @socketio.on("validWord")
 def valid_word(message):
     emit("validWord", {"valid": app.words.valid_word(message['word'])})
 
-# @socketio.on('my_event')
+# @socketio.on('my broadcast event')
 # def message(message):
-#     emit('my response', {'data': message['data']})
+#     emit('my response', {'data': message['data']}, broadcast=True)
 
-@socketio.on('my broadcast event')
-def message(message):
-    emit('my response', {'data': message['data']}, broadcast=True)
+@socketio.on('keepalive')
+def keepalive():
+    emit('keepalive', {'keepalive': True})
 
 @socketio.on('connect')
 def connect():
@@ -40,10 +40,6 @@ def connect():
 @socketio.on('disconnect')
 def disconnect():
     print('Client disconnected')
-
-@socketio.on('button')
-def button(message):
-    print(f"Client said: {message}")
 
 if __name__ == '__main__':
     socketio.run(app)

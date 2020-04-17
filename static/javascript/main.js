@@ -19,5 +19,7 @@ $(document).ready(function() {
     $("#submitGuess").click(function() {
         socket.emit("validWord", {word: $("#guess").val()});
     });
+
+    window.setInterval(function() { socket.emit('keepalive');}, 10000);
 }
 );
