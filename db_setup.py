@@ -4,12 +4,15 @@ r = Redis()
 words = open("words_alpha.txt").readlines()
 doublet_list = dict()
 
+print(f"Found {len(words)} words, clearing existing entries ...")
 r.delete("words")
 r.delete("letterpairs")
+count = 0
+
 
 for word in words:
     word = word.rstrip()
-    if len(word) >= 3:
+    if len(word) >= 2:
         r.sadd("words", word)
         for i,j in enumerate(word):
             doublet = word[i:i+2]
