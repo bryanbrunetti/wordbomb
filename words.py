@@ -1,16 +1,16 @@
 import random
 
-
 class Words:
-    def __init__(self, redis):
-        self.redis = redis
+    def __init__(self, app):
+        self.redis = app.redis
+        app.words = self
 
-    def random_pair(self, difficulty="medium") -> str:
+    def random_pair(self, difficulty="medium"):
         """
         Returns a random pair of letters based on how frequently
         The letters appear in the english dictionary
 
-        difficulty: 1 - 3, 1 being easiest, 3 most difficult
+        difficulty: string of either 'easy', 'medium' or 'hard'
         str: two letter string
         """
 
@@ -23,7 +23,8 @@ class Words:
         }
 
         rand = random.randrange(difficulty_ranges[difficulty][0], difficulty_ranges[difficulty][1])
-        return self.redis.zrange("letterpairs", rand, rand)[0].decode("utf-8")
+        return self.redis.zrange("letterpairs", rand, rand)[0]
 
     def valid_word(self, word):
-        return True if self.redis.sismember("words", word) == 1 else False
+        print(f"looking up {word}: result: {self.redis.sismember('words', word)}")
+        return True if self.redis.sismember("words", word) else False

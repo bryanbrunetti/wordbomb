@@ -8,4 +8,4 @@ def load(app):
     load_dotenv(dotenv_path)
     app.secret_key = os.environ["SESSION_SECRET"]
     app.redis = redis.from_url(os.environ["REDIS_URL"], decode_responses=True)
-    app.round_time = 5
+    app.round_time = 10

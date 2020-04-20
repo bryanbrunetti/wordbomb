@@ -31,7 +31,4 @@ class Players:
         return self.redis.delete(f"player:{player['id']}")
 
     def keepalive(self, player):
-        result = self.redis.expire(
-            f"player:{player['id']}", self.keepalive_seconds)
-        print(f"Keepalive result: {result}")
         return self.redis.expire(f"player:{player['id']}", self.keepalive_seconds)
