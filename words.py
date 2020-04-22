@@ -26,5 +26,9 @@ class Words:
         return self.redis.zrange("letterpairs", rand, rand)[0]
 
     def valid_word(self, word):
-        print(f"looking up {word}: result: {self.redis.sismember('words', word)}")
         return True if self.redis.sismember("words", word) else False
+    
+    def points_for(self, letterpair, word=None):
+        total_pairs = self.redis.zcard("letterpairs")
+        letterpair_rank = self.redis.zrank("letterpairs", letterpair)
+        return total_pairs - letterpair_rank

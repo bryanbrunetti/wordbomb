@@ -51,13 +51,18 @@ def end_game():
         stop_game = False
 
 def start_new_game():
+    global thread
     socketio.emit("newGameStarted")
+    game_state.start_new_game()
     next_player()
     thread = socketio.start_background_task(start_game_tick)
+    
 
 @app.route("/join", methods=["POST"])
 def join():
-    session["player"] = {"name": players.name(request.form["playerName"]), "id": players.get_next_id()}
+    player_name = request.form["playerName"].replace(",","")
+    player_name = player_name.replace(":","")
+    session["player"] = {"name": players.name(player_name), "id": players.get_next_id()}
     return redirect(url_for("game"))
 
 @socketio.on("validWord")
@@ -66,9 +71,14 @@ def valid_word(message):
     active_player = game_state.get_active_player()
     if active_player and int(active_player['id']) == int(session['player']['id']):
         global go_next
-        is_valid = game_state.valid_word(message)
-        go_next = True if is_valid else False
-        emit("validWord", is_valid, broadcast=True)
+        if game_state.valid_word(message):
+            points = words.points_for(game_state.current_letterpair())
+            score = game_state.player_add_points(active_player,points)
+            emit("playerScore", {"player": active_player, "score": score}, broadcast=True)
+            go_next = True
+            emit("validWord", True, broadcast=True)
+        else:
+            emit("validWord", False, broadcast=True)
 
 
 @socketio.on("guessUpdate")
@@ -89,27 +99,52 @@ def keepalive():
 @player_required
 def connect():
     players.add(session['player'])
-    emit("playerid", session['player'], room=request.sid)
-    emit("playerJoined", {"players": game_state.current_players()}, broadcast=True)
+    emit("welcome", {
+        "player": session['player'], 
+        "gameState": current_game_state()
+        }, room=request.sid)
+    emit("playerJoined", session["player"], broadcast=True)
 
+def current_game_state():
+    # TODO: game state may have players waiting or current
+    state = dict()
+    state['currentPlayers'] = game_state.all_players()
+    state['activePlayer'] = game_state.get_active_player()
+    state['gameInProgress'] = is_game_in_progress()
+    if state['gameInProgress']:
+        state["letterPair"] = game_state.current_letterpair()
+    return state
 
 @socketio.on('disconnect')
 @player_required
 def disconnect():
-    players.remove(session["player"])
-    emit("playerLeft", {"players": game_state.current_players()}, broadcast=True)
-    print(f"Client disconnected: {session}")
+    emit("playerLeft", session["player"], broadcast=True)
 
-def start_game_state():
+def is_game_in_progress():
     global thread, stop_game
-    while True:
-
-        socketio.sleep(1)
+    if thread:
+        if thread.is_alive():
+            return True
+        else:
+            end_game()
+            return False
+    else:
+        return False
 
 def start_game_tick():
     time = app.round_time
     global stop_game, go_next
+    pubsub = app.redis.pubsub()
+    pubsub.psubscribe("__keyevent@0__:expired")
     while True:
+        msg = pubsub.get_message()
+        if msg:
+            if msg["type"] == "pmessage":
+                if "player:" in msg["data"]:
+                    game_state.remove_player_id(msg["data"].split(":")[1])
+                elif "player_list" == msg["data"]:
+                    return
+
         if not len(game_state.current_players()) or stop_game:
             return
 
@@ -124,6 +159,15 @@ def start_game_tick():
             time -= 1
             socketio.sleep(1)
         else:
+            active_player = game_state.get_active_player()
+            if active_player:
+                player_state = game_state.get_player_state(active_player)
+                if player_state:
+                    lives = game_state.remove_life(active_player)
+                    socketio.emit("playerLifeChange", {"player": active_player, "lives": lives}, broadcast=True)
+                    if lives <= 0:
+                        game_state.remove_player_id(active_player["id"])
+                        socketio.emit("playerLost", active_player, broadcast=True)
             socketio.emit("wrong", broadcast=True)
             next_player()
             time = 10
@@ -131,9 +175,12 @@ def start_game_tick():
 
 def next_player():
     next_player = game_state.next_player()
-    game_state.set_active_player_id(next_player["id"])
-    socketio.emit("nextPlayer", next_player, broadcast=True)
-    socketio.emit("newLetterPair", {"letterpair": game_state.next_letterpair()})
+    if next_player:
+        game_state.set_active_player_id(next_player["id"])
+        socketio.emit("nextPlayer", next_player, broadcast=True)
+        socketio.emit("newLetterPair", {"letterpair": game_state.next_letterpair()})
+    else:
+        socketio.emit("gameOver")
 
 
 if __name__ == '__main__':
