@@ -34,10 +34,9 @@ $(document).ready(function () {
         $("#timerBox").show()
         $("#letterpair").show()
         $("#guessWordContainer").show()
-        $(".player").css("text-decoration", "none")
-        $(".lives").each(function(livesElem) {
-            $(livesElem).html("&hearts; &hearts;")
-        })
+        $(".player .playerName").css("text-decoration", "none")
+        $(".lives").html(heartTemplate() + heartTemplate())
+        $(".score").html(0)
     })
     
     socket.on('newLetterPair', function (data) {
@@ -48,8 +47,8 @@ $(document).ready(function () {
 
     socket.on("validWord", function (isValid) {
         if(isValid) {
-            animateCSS("#guessWord", "tada")
-            animateCSS("#letterpair", "tada")
+            // animateCSS("#guessWord", "tada")
+            // animateCSS("#letterpair", "tada")
         } else {
             animateCSS("#guessWord", "shake")
         }
@@ -59,7 +58,6 @@ $(document).ready(function () {
         $("#guessWord").text(data.guess)
     })
     socket.on("wrong", function () {
-        console.log("wrong word!")
         animateCSS("#letterpair", "wobble")
         animateCSS("#guessWord", "wobble")
     })
@@ -73,8 +71,6 @@ $(document).ready(function () {
     })
 
     socket.on("nextPlayer", function(player) {
-        // Move progressbar to active player
-        // $("#childNode").detach().appendTo("#parentNode");
         $("#guessWord").empty();
         localStorage.setItem("currentPlayerId", player.id)
         $(".player").each(function(i,playerDiv) {
@@ -106,21 +102,18 @@ $(document).ready(function () {
     });
 
     socket.on("playerLost", function(player) {
-        $(".player").each(function(i,playerDiv) {
-            if($(playerDiv).data("playerid") == player.id) {
-                $(playerDiv + " .name").css("text-decoration","line-through")
-            }
-        })
+        $("#player" + player.id + " .playerName").css("text-decoration","line-through")
     });
 
     socket.on("gameOver", function(){
         $("#letterpair").hide()
-        $("#timeBox").detach()
-        $("#guessWordContainer").hide()
+        // $("#timerBox").hide()
+        // $("#guessWordContainer").hide()
         $("#startGame").show()
     });
 
     socket.on("playerScore", function(data) {
+        animateCSS("#player"+data.player.id + " .score", "tada")
         $("#player"+data.player.id + " .score").text(data.score)
     });
 
@@ -129,10 +122,18 @@ $(document).ready(function () {
     })
 
     function setPlayerLives(player_id, lives) {
-        $("#player"+player_id+" .lives").empty()
-        for(i=1;i<=lives;i++) {
-            $("#player"+player_id+" .lives").append("&hearts; ")
+        current_lives = $("#player"+player_id+" .life").length
+        if(current_lives > lives) {
+            for(i=current_lives;i>lives;i--) {
+                animateCSS("#player"+player_id+" .life", "rotateOut", i-1, true)
+            }
+        } else {
+            for(i=lives;i<current_lives;i++) {
+                $("#player"+player_id+" .lives").append(heartTemplate());
+                animateCSS("#player"+player_id+" .life", "tada", i-1);
+            }
         }
+
     }
 
     function setActivePlayerElem(playerDiv) {
@@ -140,7 +141,7 @@ $(document).ready(function () {
     }
 
     function addPlayerElem(player) {
-        $("#players").append("<div class='player row' data-playerid='"+player.id+"' id='player"+player.id+"'><div class='playerName col-md-1'>"+player.name+"</div><div class='lives col-md-1'>&hearts; &hearts;</div><div class='col-md-1'>score:</div><div class='score col-md-1'>0</div></div>")
+        $("#players").append('<div class="player row" data-playerid="'+player.id+'" id="player'+player.id+'"><div class="playerName col-md-1">'+player.name+'</div><div class="lives col-md-1">' + heartTemplate() + '' + heartTemplate() + '</div><div class="col-md-1">score:</div><div class="score col-md-1">0</div></div>')
     }
 
     $(document).on("keydown", function(event) {
@@ -174,23 +175,24 @@ $(document).ready(function () {
 }
 );
 
+function heartTemplate() {
+    return '<svg class="bi bi-heart-fill life text-danger" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z" clip-rule="evenodd"/></svg>';
+}
 function cssAnimate(target, name) {
     target.removeClass().addClass(name + ' animated').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
       $(this).removeClass();
     });
   };
 
-  function animateCSS(element, animationName, callback) {
-    const node = document.querySelector(element)
+  function animateCSS(element, animationName, index=0, remove=false) {
+    const node = document.querySelectorAll(element)[index]
     node.classList.add('animated', animationName)
 
     function handleAnimationEnd() {
         node.classList.remove('animated', animationName)
         node.removeEventListener('animationend', handleAnimationEnd)
-
-        if (typeof callback === 'function') callback()
+        if(remove) { node.remove() }
     }
-
     node.addEventListener('animationend', handleAnimationEnd)
 };
 
