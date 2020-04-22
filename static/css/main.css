@@ -32,5 +32,12 @@ body {
 
 .progress {
     margin: 10px;
-    /* width: 700px; */
   }
+
+.players {
+    width: 600px;
+}
+
+.playerRow div {
+    padding: 0px;
+}

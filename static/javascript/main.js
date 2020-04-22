@@ -141,7 +141,7 @@ $(document).ready(function () {
     }
 
     function addPlayerElem(player) {
-        $("#players").append('<div class="player row" data-playerid="'+player.id+'" id="player'+player.id+'"><div class="playerName col-md-1">'+player.name+'</div><div class="lives col-md-1">' + heartTemplate() + '' + heartTemplate() + '</div><div class="col-md-1">score:</div><div class="score col-md-1">0</div></div>')
+        $("#players").append('<div class="player row playerRow" data-playerid="'+player.id+'" id="player'+player.id+'"><div class="playerName col-md-3">'+player.name+'</div><div class="lives col-md-1">' + heartTemplate() + '' + heartTemplate() + '</div><div class="col-md-1">score:</div><div class="score col-md-1">0</div></div>')
     }
 
     $(document).on("keydown", function(event) {
