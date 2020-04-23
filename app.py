@@ -5,6 +5,7 @@ from flask_socketio import SocketIO, emit
 from players import Players
 from words import Words
 from game_state import GameState
+from leaderboard import LeaderBoard
 from authentication import player_required
 
 
@@ -13,6 +14,7 @@ config.load(app)
 words = Words(app)
 players = Players(app)
 game_state = GameState(app)
+leaderboard = LeaderBoard(app)
 socketio = SocketIO(app, async_mode=None)
 
 thread = None
@@ -21,13 +23,13 @@ stop_game = go_next = False
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', leaderboard=leaderboard.top(10))
 
 
 @app.route('/game')
 @player_required
 def game():
-    return render_template("game.html", player=session["player"])
+    return render_template("game.html", player=session["player"], url=request.base_url)
 
 
 @socketio.on("startGame")
@@ -141,7 +143,10 @@ def start_game_tick():
         if msg:
             if msg["type"] == "pmessage":
                 if "player:" in msg["data"]:
-                    game_state.remove_player_id(msg["data"].split(":")[1])
+                    player_id = msg["data"].split(":")[1]
+                    game_state.remove_player_id(player_id)
+                    socketio.emit("playerRemoved", {"playerId": player_id}, broadcast=True)
+
                 elif "player_list" == msg["data"]:
                     return
 
@@ -166,6 +171,7 @@ def start_game_tick():
                     lives = game_state.remove_life(active_player)
                     socketio.emit("playerLifeChange", {"player": active_player, "lives": lives}, broadcast=True)
                     if lives <= 0:
+                        leaderboard.add_player(active_player, player_state["score"])
                         game_state.remove_player_id(active_player["id"])
                         socketio.emit("playerLost", active_player, broadcast=True)
             socketio.emit("wrong", broadcast=True)

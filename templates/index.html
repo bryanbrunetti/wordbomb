@@ -9,21 +9,42 @@
 </head>
 <body>
     <div class="mx-auto w-75">
-    <div class="jumbotron">
-        <h1 class="display-4">Welcome to WordBomb!</h1>
-        <p class="lead">This is a simple game where you have 10 seconds to type a word that contains random two-letter pairs.</p>
-        <hr class="my-4">
-        <p>
-            Enter your name to start a new game, or join a game currently in progress.
-            <form method="post" action="/join">
-                <label for="playerName">Name: </label> <input type="text" id="playerName" name="playerName">
-                <input type="submit" class="btn btn-primary" value="Join Game" />
-            </form>
-        </p>
-      </div>
+        <div class="jumbotron">
+            <h1 class="display-4">Welcome to WordBomb!</h1>
+            <p class="lead">
+                This is a simple game where you have 10 seconds to type a word that contains random two-letter pairs.
+                The less frequently the letters appear in words, the more points you get.
+            </p>
+            <hr class="my-4">
+            <p>
+                Enter your name to start a new game, or join a game currently in progress.
+                <form method="post" action="/join">
+                    <label for="playerName">Name: </label> <input type="text" id="playerName" name="playerName">
+                    <input type="submit" class="btn btn-primary" value="Join Game" />
+                </form>
+            </p>
+        </div>
+        <div class="mx-auto w-50 text-center">
+            <h2>Leaderboard</h2>
+        </div>
+        <table class="table w-50 mx-auto">
+            <thead>
+                <tr>
+                    <th scope="col">Rank</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for leader in leaderboard %}
+                    <tr>
+                        <th scope="row">{{leader[0]}}</td>
+                        <td>{{leader[1]}}</td>
+                        <td>{{leader[2]}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-
-
-
 </body>
 </html>
