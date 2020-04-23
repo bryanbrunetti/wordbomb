@@ -13,7 +13,7 @@ class LeaderBoard:
         return return_values
 
     def add_player(self, player, score):
-        high_score = int(self.redis.zscore("leaderboard", player["name"]))
-        if not high_score or int(score) > int(high_score):
+        high_score = self.redis.zscore("leaderboard", player["name"]) or 0
+        if int(score) > int(high_score):
             self.redis.zadd("leaderboard", {f"{player['name']}": score })
             self.redis.zremrangebyrank("leaderboard", 0, self.keep_top*-1)
