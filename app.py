@@ -1,5 +1,6 @@
 import config
 import threading
+import re
 from flask import Flask, render_template, request, url_for, session, redirect
 from flask_socketio import SocketIO, emit
 from players import Players
@@ -23,8 +24,12 @@ stop_game = go_next = False
 
 @app.route('/')
 def index():
-    return render_template('index.html', leaderboard=leaderboard.top(10))
+    return render_template('index.html', leaderboard=leaderboard.rankings(), player=session.get("player"))
 
+@app.route("/signout")
+def signout():
+    session.clear()
+    return redirect(url_for("index"))
 
 @app.route('/game')
 @player_required
@@ -62,9 +67,12 @@ def start_new_game():
 
 @app.route("/join", methods=["POST"])
 def join():
-    player_name = request.form["playerName"].replace(",","")
-    player_name = player_name.replace(":","")
-    session["player"] = {"name": players.name(player_name), "id": players.get_next_id()}
+    player_name = re.sub('[^0-9a-zA-Z]+', '', request.form["playerName"])
+    if session.get("player"):
+        session_id = session["player"]["id"]
+    else:
+        session_id = players.get_next_id()
+    session["player"] = {"name": players.name(player_name), "id": session_id}
     return redirect(url_for("game"))
 
 @socketio.on("validWord")

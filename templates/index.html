@@ -17,11 +17,19 @@
             </p>
             <hr class="my-4">
             <p>
-                Enter your name to start a new game, or join a game currently in progress.
-                <form method="post" action="/join">
-                    <label for="playerName">Name: </label> <input type="text" id="playerName" name="playerName">
-                    <input type="submit" class="btn btn-primary" value="Join Game" />
-                </form>
+                {% if player %}
+                    You are currently signed in as {{player['name']}}.
+                    <form method="post" action="/join">
+                        <label for="playerName">Name: </label> <input type="text" id="playerName" name="playerName" value="{{player['name']}}">
+                        <input class="btn btn-primary" type="submit" value="Change Name and Rejoin"> or <a class="btn btn-primary" href="/signout" role="button">Sign Out</a>
+                    </form>
+                {% else %}
+                    Enter your name to start a new game, or join a game currently in progress.
+                    <form method="post" action="/join">
+                        <label for="playerName">Name: </label> <input type="text" id="playerName" name="playerName">
+                        <input class="btn btn-primary" type="submit" value="Join Game">
+                    </form>
+                {% endif %}
             </p>
         </div>
         <div class="mx-auto w-50 text-center">

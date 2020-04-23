@@ -15,7 +15,7 @@ class Words:
         """
 
         count = self.redis.zcard("letterpairs")
-        step = count / 3
+        step = int(count / 3)
         difficulty_ranges = {
             "hard": (0, step),
             "medium": (step, step * 2),
@@ -32,3 +32,4 @@ class Words:
         total_pairs = self.redis.zcard("letterpairs")
         letterpair_rank = self.redis.zrank("letterpairs", letterpair)
         return total_pairs - letterpair_rank
+

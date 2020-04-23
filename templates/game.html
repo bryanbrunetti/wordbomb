@@ -19,6 +19,17 @@
 </head>
 
 <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+              <a href="/signout" class="nav-link">Sign Out</a>
+            </li>
+        </ul>
+    </nav>
+    <br/>
     <div class="mx-auto w-50 text-center">
         <button id="startGame">Start a new game</button>
     </div>
@@ -32,7 +43,7 @@
     <div class="row">
         <div class="mx-auto">
             <div id="guessWordContainer" class="badge">
-                <div id="guessWord" class="badge"></div>
+                <span id="guessWord" class="badge"></span>
             </div>
         </div>
     </div>

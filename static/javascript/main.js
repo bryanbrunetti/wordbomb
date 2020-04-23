@@ -71,7 +71,7 @@ $(document).ready(function () {
     })
 
     socket.on("nextPlayer", function(player) {
-        $("#guessWord").empty();
+        $("#guessWord").text("");
         localStorage.setItem("currentPlayerId", player.id)
         $(".player").each(function(i,playerDiv) {
             if($(playerDiv).data("playerid") == player.id) {
@@ -125,7 +125,7 @@ $(document).ready(function () {
         current_lives = $("#player"+player_id+" .life").length
         if(current_lives > lives) {
             for(i=current_lives;i>lives;i--) {
-                animateCSS("#player"+player_id+" .life", "rotateOut", i-1, true)
+                animateCSS("#player"+player_id+" .life", "bounceOut", i-1, true)
             }
         } else {
             for(i=lives;i<current_lives;i++) {
@@ -150,7 +150,7 @@ $(document).ready(function () {
         }
         if (event.key.length == 1 && event.key.match(/^[a-z]+$/i)) {
             key = event.key.toLowerCase();
-            $("#guessWord").append(key);
+            $("#guessWord").text($("#guessWord").text().concat(key))
             socket.emit("guessUpdate", $("#guessWord").text())
         } else if (event.keyCode == 8) {
             $("#guessWord").text($("#guessWord").text().slice(0, -1))
