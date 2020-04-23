@@ -1,7 +1,7 @@
 # WordBomb
 A web-based, multiplayer word game
 
-You have ten seconds to type a word that contains a random bigram ( two consecutive letters).
+You have ten seconds to type a word that contains a random bi-gram ( two consecutive letters).
 
 Scoring is based on how rare the bigram appears in English words.
 
