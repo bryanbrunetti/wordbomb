@@ -14,6 +14,12 @@ Once you have the right version of Python and a Redis server running, install th
 
 ```pip install -r requirements.txt```
 
+Create two environment variables, or create a .env file with:
+```
+REDIS_URL=redis://localhost:6379/0
+SESSION_SECRET=myseekret!
+```
+
 Populate the Redis DB with the words and bigrams:
 
 ```python db_setup.py```
